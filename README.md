@@ -1,2 +1,2 @@
-# Fall-2021-ICSI404-Assembly-Programming-and-Computer-Organization
+# ICSI 404 Coursework
 Coursework completed in ICSI 404
