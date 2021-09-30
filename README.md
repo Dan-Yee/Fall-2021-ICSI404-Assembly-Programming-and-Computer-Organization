@@ -1,2 +1,2 @@
 # ICSI 404 Coursework
-Coursework completed in ICSI 404
+Repository for all coursework completed in ICSI 404
