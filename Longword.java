@@ -61,15 +61,13 @@ public class Longword {
         int signedValue = 0;
         Longword longwordCopy = new Longword(this.getBitVector());
 
-        if(longwordCopy.getBit(31)) {                                         // perform two's complement because most significant bit is true
-            longwordCopy = longwordCopy.not();
-            signedValue = Integer.MIN_VALUE + 1;
-        }
-
         for(int i = 0; i < 31; i++) {
             if(longwordCopy.getBit(i))
                 signedValue += Math.pow(2, i);
         }
+        if(longwordCopy.getBit(31))                                                         // if MSB is 1, subtract Integer Min Value to account for negative number
+            signedValue -= Integer.MIN_VALUE;
+
         return signedValue;
     }
 
@@ -92,16 +90,12 @@ public class Longword {
      * @param value the value being set for this longword
      */
     public void set(int value) {
-        String binaryRepresentation = String.format("%32s", Integer.toBinaryString(Math.abs(value))).replaceAll(" ", "0");
+        String binaryRepresentation = String.format("%32s", Integer.toBinaryString(value)).replaceAll(" ", "0");
         this.bitVector.clear();
 
         for(int i = binaryRepresentation.length() - 1; i >= 0; i--) {
             if(binaryRepresentation.charAt(i) == '1')
                 this.setBit(Math.abs(i - 31));
-        }
-        if(value < 0) {
-            this.clearBit(31);
-            this.setBit(31);
         }
     }
 
