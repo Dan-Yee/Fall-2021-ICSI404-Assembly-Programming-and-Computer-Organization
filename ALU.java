@@ -64,13 +64,14 @@ public class ALU implements ALUInterface {
     /**
      * Method that performs an operation on two Longword's based on the ALU operation code
      * @return a new Longword after the ALU operation has been performed
-     * @throws Exception if the ALU code is not recognized or if the logical shift amount is negative
+     * @throws Exception if the ALU code is not recognized
      */
     public Longword operate(int ALUCode, Longword operand1, Longword operand2) throws Exception {
         Longword operand1Copy = new Longword(operand1.getBitVector());
         Longword operand2Copy = new Longword(operand2.getBitVector());
         Longword returnValue = new Longword();
         int shiftAmount;
+        Longword shiftAmountBitSet = new Longword();
 
         switch(ALUCode) {
             case 0:                                                                                     // Logical AND
@@ -91,8 +92,11 @@ public class ALU implements ALUInterface {
                 break;
             case 5:                                                                                     // Shift Left Logical
                 shiftAmount = operand2Copy.getSigned();
-                if(shiftAmount < 0)
-                    throw new Exception("ALU.operate.SLL: Shift amount cannot be negative!");
+                if(shiftAmount < 0) {                                                                   // Shift opposite direction if shift amount is negative
+                    shiftAmountBitSet.set(Math.abs(shiftAmount));
+                    returnValue = operate(6, operand1Copy, shiftAmountBitSet);
+                    break;
+                }
 
                 for(int i = 31; i > 31 - shiftAmount; i--) {                                            // check for overflow after SLL
                     if(operand1.getBit(i)) {
@@ -104,14 +108,21 @@ public class ALU implements ALUInterface {
                 break;
             case 6:                                                                                     // Shift Right Logical
                 shiftAmount = operand2Copy.getSigned();
-                if(shiftAmount < 0)
-                    throw new Exception("ALU.operate.SRL: Shift amount cannot be negative!");
+                if(shiftAmount < 0) {                                                                   // Shift opposite direction if shift amount is negative     
+                    shiftAmountBitSet.set(Math.abs(shiftAmount));
+                    returnValue = operate(5, operand1Copy, shiftAmountBitSet);
+                    break;
+                }
+
                 returnValue = operand1Copy.shiftRightLogical(shiftAmount);
                 break;
             case 7:                                                                                     // Shift Right Arithmetic
                 shiftAmount = operand2Copy.getSigned();
-                if(shiftAmount < 0)
-                    throw new Exception("ALU.operate.SRA: Shift amount cannot be negative!");
+                if(shiftAmount < 0) {                                                                   // Shift opposite direction if shift amount is negative
+                    shiftAmountBitSet.set(Math.abs(shiftAmount));
+                    returnValue = operate(5, operand1Copy, shiftAmountBitSet);
+                    break;
+                }
                 returnValue = operand1Copy.shiftRightArithmetic(shiftAmount);
                 break;
             default:
