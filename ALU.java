@@ -97,14 +97,12 @@ public class ALU implements ALUInterface {
                     returnValue = operate(6, operand1Copy, shiftAmountBitSet);
                     break;
                 }
-
-                for(int i = 31; i > 31 - shiftAmount; i--) {                                            // check for overflow after SLL
-                    if(operand1.getBit(i)) {
-                        this.toggleFlag(3);
-                        break;
-                    }
-                }
                 returnValue = operand1Copy.shiftLeftLogical(shiftAmount);
+
+                if(shiftAmount == 1) {                                                                  // check for overflow after SLL operation
+                    if(operand1Copy.getBit(31) != returnValue.getBit(31))                               // check for sign flip if shift amount is 1
+                        this.toggleFlag(3);
+                }
                 break;
             case 6:                                                                                     // Shift Right Logical
                 shiftAmount = operand2Copy.getSigned();
