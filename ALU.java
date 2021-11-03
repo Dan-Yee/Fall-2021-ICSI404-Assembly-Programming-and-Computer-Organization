@@ -38,27 +38,35 @@ public class ALU implements ALUInterface {
     }
 
     /**
-     * Mutator to toggle the flag based on the flagID
-     * @param flagID a numerical value representing one of the four flags
-     * @throws Exception when the numerical value for flagID isn't recognized
+     * Mutator to change the status of the Zero Flag
+     * @param flagStatus the new status of the flag
      */
-    public void toggleFlag(int flagID) throws Exception {
-        switch(flagID) {
-            case 0:
-                this.zeroFlag = !zeroFlag;
-                break;
-            case 1:
-                this.negativeFlag = !negativeFlag;
-                break;
-            case 2:
-                this.carryOutFlag = !carryOutFlag;
-                break;
-            case 3:
-                this.overflowFlag = !overflowFlag;
-                break;
-            default:
-                throw new Exception("ALU.toggleFlag: Invalid flagID value of " + flagID);
-        }
+    public void setZeroFlag(boolean flagStatus) {
+        this.zeroFlag = flagStatus;
+    }
+
+    /**
+     * Mutator to change the status of the Negative Flag
+     * @param flagStatus the new status of the flag
+     */
+    public void setNegativeFlag(boolean flagStatus) {
+        this.negativeFlag = flagStatus;
+    }
+
+    /**
+     * Mutator to change the status of the Carry Out Flag
+     * @param flagStatus the new status of the flag
+     */
+    public void setCarryOutFlag(boolean flagStatus) {
+        this.carryOutFlag = flagStatus;
+    }
+
+    /**
+     * Mutator to change the status of the Overflow Flag
+     * @param flagStatus the new status of the flag
+     */
+    public void setOverflowFlag(boolean flagStatus) {
+        this.overflowFlag = flagStatus;
     }
 
     /**
@@ -70,8 +78,7 @@ public class ALU implements ALUInterface {
         Longword operand1Copy = new Longword(operand1.getBitVector());
         Longword operand2Copy = new Longword(operand2.getBitVector());
         Longword returnValue = new Longword();
-        int shiftAmount;
-        Longword shiftAmountBitSet = new Longword();
+        long shiftAmount;
 
         switch(ALUCode) {
             case 0:                                                                                     // Logical AND
@@ -87,54 +94,40 @@ public class ALU implements ALUInterface {
                 returnValue = rippleCarryAdd(operand1Copy, operand2Copy, false);
                 break;
             case 4:                                                                                     // Subtraction
-                operand2Copy = rippleCarryAdd(operand2Copy.not(), new Longword(), true);                // Get twos complement of second operand because subtraction is the addition of a twos complement number
-                returnValue = rippleCarryAdd(operand1Copy, operand2Copy, false);
+                returnValue = rippleCarryAdd(operand1Copy, operand2Copy.not(), true);
                 break;
             case 5:                                                                                     // Shift Left Logical
-                shiftAmount = operand2Copy.getSigned();
-                if(shiftAmount < 0) {                                                                   // Shift opposite direction if shift amount is negative
-                    shiftAmountBitSet.set(Math.abs(shiftAmount));
-                    returnValue = operate(6, operand1Copy, shiftAmountBitSet);
-                    break;
-                }
-                returnValue = operand1Copy.shiftLeftLogical(shiftAmount);
+                shiftAmount = operand2Copy.getUnsigned();
+                if(shiftAmount < 0 || shiftAmount > 32)
+                    shiftAmount %= 32;
+                returnValue = operand1Copy.shiftLeftLogical((int)shiftAmount);
 
                 if(shiftAmount == 1) {                                                                  // check for overflow after SLL operation
                     if(operand1Copy.getBit(31) != returnValue.getBit(31))                               // check for sign flip if shift amount is 1
-                        this.toggleFlag(3);
+                        this.setOverflowFlag(true);
                 }
                 break;
             case 6:                                                                                     // Shift Right Logical
-                shiftAmount = operand2Copy.getSigned();
-                if(shiftAmount < 0) {                                                                   // Shift opposite direction if shift amount is negative     
-                    shiftAmountBitSet.set(Math.abs(shiftAmount));
-                    returnValue = operate(5, operand1Copy, shiftAmountBitSet);
-                    break;
-                }
-
-                returnValue = operand1Copy.shiftRightLogical(shiftAmount);
+                shiftAmount = operand2Copy.getUnsigned();
+                if(shiftAmount < 0 || shiftAmount > 32)
+                    shiftAmount %= 32;
+                returnValue = operand1Copy.shiftRightLogical((int)shiftAmount);
                 break;
             case 7:                                                                                     // Shift Right Arithmetic
-                shiftAmount = operand2Copy.getSigned();
-                if(shiftAmount < 0) {                                                                   // Shift opposite direction if shift amount is negative
-                    shiftAmountBitSet.set(Math.abs(shiftAmount));
-                    returnValue = operate(5, operand1Copy, shiftAmountBitSet);
-                    break;
-                }
-                returnValue = operand1Copy.shiftRightArithmetic(shiftAmount);
+                shiftAmount = operand2Copy.getUnsigned();
+                if(shiftAmount < 0 || shiftAmount > 32)
+                    shiftAmount %= 32;
+                returnValue = operand1Copy.shiftRightArithmetic((int)shiftAmount);
                 break;
             default:
                 throw new Exception("ALU.operate: Invalid ALU Code");
         }
         // Updating ZeroFlag after all ALU operations
-        if(returnValue.isZero())
-            this.toggleFlag(0);
+        this.setZeroFlag(returnValue.isZero());
 
         // Updating NegativeFlag after ALU operation excluding SRL operation
-        if(ALUCode != 6) {
-            if(returnValue.getBit(31))
-                this.toggleFlag(1);
-        }
+        if(ALUCode != 6)
+            this.setNegativeFlag(returnValue.getBit(31));
         return returnValue;
     }
 
@@ -150,13 +143,19 @@ public class ALU implements ALUInterface {
                 returnValue.toggleBit(i);
                 carryIn = false;
             }
-            if(operand1Copy.getBit(i) && operand2Copy.getBit(i)) {
+            if(operand1Copy.getBit(i) && operand2Copy.getBit(i) && !carryIn)                            // check for carry for next bit
                 carryIn = true;
-                if(i == 31) {                                                                           // if on last bit and carry out is true
-                    this.toggleFlag(2);                                                                 // toggle carry out flag
-                    this.toggleFlag(3);                                                                 // toggle overflow flag
-                }
-            }
+            if(i == 31)                                                                                 // if on last bit set carry out flag
+                this.setCarryOutFlag(carryIn);
+        }
+
+        // check for overflow and set the flag accordingly
+        if(operand1Copy.getBit(31) == false && operand2Copy.getBit(31) == false) {
+            if(returnValue.getBit(31))
+                this.setOverflowFlag(true);
+        } else if(operand1Copy.getBit(31) && operand2Copy.getBit(31)) {
+            if(returnValue.getBit(31) == false)
+                this.setOverflowFlag(true);
         }
         return returnValue;
     }

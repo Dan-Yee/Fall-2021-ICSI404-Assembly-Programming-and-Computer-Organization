@@ -122,7 +122,7 @@ public class Longword {
      * @param nAmount amount to be left shifted
      * @return a new Longword after it was logically right shifted
      */
-    public Longword shiftLeftLogical(int nAmount) {
+    public Longword shiftLeftLogical(int nAmount) {       
         BitSet shiftedSet = new BitSet(32);
 
         for(int i = nAmount; i < 32; i++) {
