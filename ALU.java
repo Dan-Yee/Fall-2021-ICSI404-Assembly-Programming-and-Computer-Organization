@@ -98,7 +98,7 @@ public class ALU implements ALUInterface {
                 break;
             case 5:                                                                                     // Shift Left Logical
                 shiftAmount = operand2Copy.getUnsigned();
-                if(shiftAmount > 32)
+                if(shiftAmount > 31)
                     shiftAmount %= 32;
                 returnValue = operand1Copy.shiftLeftLogical((int)shiftAmount);
 
@@ -109,13 +109,13 @@ public class ALU implements ALUInterface {
                 break;
             case 6:                                                                                     // Shift Right Logical
                 shiftAmount = operand2Copy.getUnsigned();
-                if(shiftAmount > 32)
+                if(shiftAmount > 31)
                     shiftAmount %= 32;
                 returnValue = operand1Copy.shiftRightLogical((int)shiftAmount);
                 break;
             case 7:                                                                                     // Shift Right Arithmetic
                 shiftAmount = operand2Copy.getUnsigned();
-                if(shiftAmount > 32)
+                if(shiftAmount > 31)
                     shiftAmount %= 32;
                 returnValue = operand1Copy.shiftRightArithmetic((int)shiftAmount);
                 break;
