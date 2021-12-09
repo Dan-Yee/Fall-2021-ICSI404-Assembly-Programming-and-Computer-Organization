@@ -57,9 +57,9 @@ public class Memory {
                 // Special Case: Number of bytes to be read, starting from an address, would exceed the maximum size of the memory array.
                 throw new Exception("MemoryReadException: Memory read out of bounds for initial address and number of bytes read.");
             else {
-                for(int i = readAddress + (readAmount * 8); i > readAddress; i--) {
+                for(int i = readAddress + (readAmount * 8) - 1; i > readAddress; i--) {
                     if(memoryArray[i] == 1)
-                        returnValue.setBit((readAmount * 8) - i - 1);
+                        returnValue.setBit(Math.abs((readAmount * 8) - i - 1));
                 }
             }
         }
@@ -93,7 +93,7 @@ public class Memory {
                 throw new Exception("MemoryWriteException: Memory write out of bounds for initial address and number of bytes written.");
             else {
                 for(int i = writeAddress; i < writeAddress + (writeAmount * 8); i++) {
-                    if(word.getBit((writeAmount * 8) - i - 1))
+                    if(word.getBit(Math.abs((writeAmount * 8) - i - 1)))
                         this.memoryArray[i] = 1;
                 }
             }
