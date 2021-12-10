@@ -14,4 +14,4 @@ The instructions that are supported in this build:
   - if equal (BEQ)
   - if not equal (BNE)
   - if less than (BLT)
-  - if less than equal (BLE)
+  - if less than or equal (BLE)
