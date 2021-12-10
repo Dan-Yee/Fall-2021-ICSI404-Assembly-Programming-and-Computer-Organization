@@ -23,14 +23,6 @@ public class Memory {
     }
 
     /**
-     * Accessor to get the memory array (For Testing Purposes Only)
-     * @return the byte array representing main memory
-     */
-    public byte[] getMemoryArray() {
-        return this.memoryArray;
-    }
-
-    /**
      * Accessor that reads up to 4 bytes in memory starting from a given address
      * @param address Longword representing the initial address of memory to be read
      * @param numBytes Number of bytes to read from memory
@@ -47,7 +39,7 @@ public class Memory {
         else if(readAmount > 4)
             throw new Exception("MemoryReadException: Number of bytes cannot be greater than four.");
         else {
-            readAddress = address.getSigned();
+            readAddress = address.getSigned() * 8;
 
             if(readAddress < 0)
                 throw new Exception("MemoryReadException: Initial read address cannot be less than zero.");
@@ -57,9 +49,9 @@ public class Memory {
                 // Special Case: Number of bytes to be read, starting from an address, would exceed the maximum size of the memory array.
                 throw new Exception("MemoryReadException: Memory read out of bounds for initial address and number of bytes read.");
             else {
-                for(int i = readAddress + (readAmount * 8) - 1; i > readAddress; i--) {
+                for(int i = readAddress, j = (readAmount * 8) - 1; i < readAddress + (readAmount * 8) && j >= 0; i++, j--) {
                     if(memoryArray[i] == 1)
-                        returnValue.setBit(Math.abs((readAmount * 8) - i - 1));
+                        returnValue.setBit(j);
                 }
             }
         }
@@ -82,7 +74,7 @@ public class Memory {
         else if(writeAmount > 4)
             throw new Exception("MemoryWriteException: Number of bytes cannot be greater than four.");
         else {
-            writeAddress = address.getSigned();
+            writeAddress = address.getSigned() * 8;
 
             if(writeAddress < 0)
                 throw new Exception("MemoryWriteException: Initial write address cannot be less than zero.");
@@ -92,10 +84,34 @@ public class Memory {
                 // Special Case: Number of bytes to be written, starting from an address, would exceed the maximum size of the memory array.
                 throw new Exception("MemoryWriteException: Memory write out of bounds for initial address and number of bytes written.");
             else {
-                for(int i = writeAddress; i < writeAddress + (writeAmount * 8); i++) {
-                    if(word.getBit(Math.abs((writeAmount * 8) - i - 1)))
-                        this.memoryArray[i] = 1;
+                for(int i = (writeAmount * 8) - 1, j = writeAddress; i >= 0 && j < writeAddress + (writeAmount * 8); i--, j++) {
+                    if(word.getBit(i))
+                        this.memoryArray[j] = 1;
                 }
+            }
+        }
+    }
+
+    /**
+     * Displays the status of the memory, 4 bytes per line
+     */
+    public void memoryDump() {
+        int bitCount = 0;
+        int spaceCounter = 0;
+
+        System.out.println("Main Memory:");
+        for(int i = 0; i < memoryArray.length; i++) {
+            System.out.print(memoryArray[i]);
+            bitCount++;
+            spaceCounter++;
+
+            if(spaceCounter == 4) {
+                System.out.print(" ");
+                spaceCounter = 0;
+            }
+            if(bitCount == 32) {
+                System.out.println();
+                bitCount = 0;
             }
         }
     }
