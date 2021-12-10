@@ -61,10 +61,8 @@ public class Computer {
         Longword numBytes = new Longword();
 
         numBytes.set(2);                                                                                            // set number of bytes to read to 2
-        this.instructionRegister = this.mainMemory.read(this.programCounter, numBytes);
-
-        int tempNum = this.programCounter.getSigned() + 16;                  
-        this.programCounter.set(tempNum);                                                                           // incremement the program counter by 2 bytes (16 bits) for next instruction fetch
+        this.instructionRegister = this.mainMemory.read(this.programCounter, numBytes);             
+        this.programCounter.set((this.programCounter.getSigned() + 2));                                             // incremement the program counter by 2 bytes (16 bits) for next instruction fetch
     }
 
     /**
@@ -72,9 +70,9 @@ public class Computer {
      */
     private void decode() {
         this.opcode = this.instructionRegister.shiftRightLogical(12);                                               // logical right shift to obtain the opcode
-        this.destinationRegister = maskLongword(this.instructionRegister.shiftRightLogical(8), 5, 8, 0);               // mask the shifted result to obtain destination register
-        this.operand1 = maskLongword(this.instructionRegister.shiftRightLogical(4), 5, 12, 0);                         // mask the shifted result to obtain the first operand
-        this.operand2 = maskLongword(this.instructionRegister, 5, 16, 0);                                              // mask the shifted result to obtain the second operand
+        this.destinationRegister = maskLongword(this.instructionRegister.shiftRightLogical(8), 5, 8, 0);            // mask the shifted result to obtain destination register
+        this.operand1 = maskLongword(this.instructionRegister.shiftRightLogical(4), 5, 12, 0);                      // mask the shifted result to obtain the first operand
+        this.operand2 = maskLongword(this.instructionRegister, 5, 16, 0);                                           // mask the shifted result to obtain the second operand
     }   
 
     /**
@@ -85,10 +83,10 @@ public class Computer {
         if(this.opcode.getBit(3)) {                                                                                 // ALU based operations because MSB of instruction code is 1
             int ALUOpCode = this.opcode.getSigned() % 8;
 
-            this.alu.operate(ALUOpCode, this.registers[this.operand1.getSigned()], this.registers[this.operand2.getSigned()]);
+            this.result = this.alu.operate(ALUOpCode, this.registers[this.operand1.getSigned()], this.registers[this.operand2.getSigned()]);
         } else {                                                                                                    // Regular operation because MSB of instruction code is 0
             int instructionOpCode = this.opcode.getSigned();
-            
+
             switch(instructionOpCode) {
                 case 0:                                                                                             // Halt (HLT) Instruction
                     this.isHalted = true;
@@ -100,24 +98,7 @@ public class Computer {
                                 System.out.println("Register " + i + ": " + this.registers[i].toString());
                             break;
                         case 1:                                                                                     // print all 256 bytes of memory to screen (4 bytes per line)
-                            int spaceCounter = 0;
-                            int bitCount = 0;
-
-                            System.out.println("Main Memory:");
-                            for(int i = 0; i < this.mainMemory.getMemoryArray().length; i++) {
-                                System.out.print(this.mainMemory.getMemoryArray()[i]);
-                                bitCount++;
-                                spaceCounter++;
-
-                                if(spaceCounter == 4) {
-                                    System.out.print(" ");
-                                    spaceCounter = 0;
-                                }
-                                if(bitCount == 32) {
-                                    System.out.println();
-                                    bitCount = 0;
-                                }
-                            }
+                            this.mainMemory.memoryDump();
                             break;
                         default:
                             throw new Exception("ComputerExecuteException: Invalid Interrupt Code");
@@ -136,6 +117,30 @@ public class Computer {
                         this.result = maskLongword(this.result, 8, 32, 1);
                     break;
                 case 3:                                                                                             // Jump (JMP) Instruction
+                    Longword jumpAddress = new Longword();
+                    int newAddress;
+
+                    for(int i = 0; i < 12; i++) {                                                                   // copies destination and both operands to be interpreted as jump address
+                        if(this.destinationRegister.getBit(i))
+                            jumpAddress.setBit(i + 8);
+                        if(this.operand1.getBit(i))
+                            jumpAddress.setBit(i + 4);
+                        if(this.operand2.getBit(i))
+                            jumpAddress.setBit(i);
+                    }
+
+                    if(jumpAddress.getBit(11))                                                                      // sign extension to preserve negative number
+                        jumpAddress = maskLongword(jumpAddress, 12, 32, 1);
+
+                    newAddress = jumpAddress.getSigned();
+                    newAddress *= 2;
+
+                    if(newAddress > 253)
+                        throw new Exception("ComputerExecuteException: Jump address out of bounds of memory");
+                    else if(newAddress < 0)
+                        throw new Exception("ComputerExecuteException: Jump address cannot be less than zero");
+                    else
+                        this.programCounter.set(newAddress);
                     break;
                 case 4:                                                                                             // Compare (CMP) Instruction
                     break;
