@@ -9,8 +9,8 @@ The instructions that are supported in this build:
 - Interrupt (INT)
 - Move (MOV)
 - Jump (JMP)
-- Compare (CMP) - Not yet implemented
-- Branch (Bxx)  - Not yet implemented
+- Compare (CMP)
+- Branch (Bxx)
   - if equal (BEQ)
   - if not equal (BNE)
   - if less than (BLT)
