@@ -3,7 +3,7 @@ import java.lang.Exception;
  * Implementation of an ALU object
  * @author Dan Yee
  */
-public class ALU implements ALUInterface {
+public class ALU {
     private boolean zeroFlag;
     private boolean negativeFlag;
     private boolean carryOutFlag;
