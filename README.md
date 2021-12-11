@@ -1,5 +1,5 @@
 # ICSI 404 Coursework
-The goal of the course was to design a simplified CPU Emulator that can handle a custom architecture of Assembly. The components of the project included a Longword, Arithmetic Logic Unit (ALU), Memory, Computer.
+The goal of the course was to design a simplified CPU Emulator that can handle a execute architecture of Assembly. The components of the project included a Longword, Arithmetic Logic Unit (ALU), Memory, Computer.
 
 The instructions that are supported in this build:
 - Arithmetic and Logic Operations
