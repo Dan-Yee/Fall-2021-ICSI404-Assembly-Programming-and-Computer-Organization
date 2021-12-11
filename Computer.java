@@ -8,6 +8,8 @@ public class Computer {
     private Longword programCounter;
     private Longword instructionRegister;
     private Longword opcode, destinationRegister, operand1, operand2, result;
+    private boolean cmpZF, cmpNF;
+    private boolean toStore;
 
     public Computer() {
         this.isHalted = false;
@@ -80,10 +82,14 @@ public class Computer {
      * @throws Exception Exception is thrown if the instruction operation code is not recognized
      */
     private void execute() throws Exception {
+        this.toStore = false;
+        this.result = new Longword();
+
         if(this.opcode.getBit(3)) {                                                                                 // ALU based operations because MSB of instruction code is 1
             int ALUOpCode = this.opcode.getSigned() % 8;
 
             this.result = this.alu.operate(ALUOpCode, this.registers[this.operand1.getSigned()], this.registers[this.operand2.getSigned()]);
+            this.toStore = true;
         } else {                                                                                                    // Regular operation because MSB of instruction code is 0
             int instructionOpCode = this.opcode.getSigned();
 
@@ -95,7 +101,7 @@ public class Computer {
                     switch(this.operand2.getSigned()) {
                         case 0:                                                                                     // print all registers to screen
                             for(int i = 0; i < this.registers.length; i++)
-                                System.out.println("Register " + i + ": " + this.registers[i].toString());
+                                System.out.println("R" + i + ": " + this.registers[i].toString());
                             break;
                         case 1:                                                                                     // print all 256 bytes of memory to screen (4 bytes per line)
                             this.mainMemory.memoryDump();
@@ -105,6 +111,8 @@ public class Computer {
                     }
                     break;
                 case 2:                                                                                             // Move (MOV) Instruction
+                    this.toStore = true;
+
                     for(int i = 0; i < 4; i++) {                                                                    // copy operands 1 and 2 into results
                         this.result.clearBit(i);
                         this.result.clearBit(i + 4);
@@ -118,7 +126,6 @@ public class Computer {
                     break;
                 case 3:                                                                                             // Jump (JMP) Instruction
                     Longword jumpAddress = new Longword();
-                    int newAddress;
 
                     for(int i = 0; i < 12; i++) {                                                                   // copies destination and both operands to be interpreted as jump address
                         if(this.destinationRegister.getBit(i))
@@ -132,19 +139,69 @@ public class Computer {
                     if(jumpAddress.getBit(11))                                                                      // sign extension to preserve negative number
                         jumpAddress = maskLongword(jumpAddress, 12, 32, 1);
 
-                    newAddress = jumpAddress.getSigned();
-                    newAddress *= 2;
-
-                    if(newAddress > 253)
+                    if((jumpAddress.getSigned() * 2) > 253)
                         throw new Exception("ComputerExecuteException: Jump address out of bounds of memory");
-                    else if(newAddress < 0)
+                    else if((jumpAddress.getSigned() * 2) < 0)
                         throw new Exception("ComputerExecuteException: Jump address cannot be less than zero");
                     else
-                        this.programCounter.set(newAddress);
+                        this.programCounter.set((jumpAddress.getSigned() * 2));
                     break;
                 case 4:                                                                                             // Compare (CMP) Instruction
+                    ALU compareALU = new ALU();                                                                     // new ALU specifically for compare operations
+                    this.cmpZF = this.cmpNF = true;                                                                 // both flags being true is impossible (used for reset)
+
+                    compareALU.operate(4, this.registers[this.operand1.getSigned()], this.registers[this.operand2.getSigned()]);
+
+                    this.cmpZF = compareALU.getFlag(0);
+                    this.cmpNF = compareALU.getFlag(1);
                     break;
                 case 5:                                                                                             // Branch (Bxx) Instructions
+                    Longword conditionCode = new Longword();
+                    Longword branchAddress = new Longword();
+
+                    if(this.destinationRegister.getBit(2))                                                          // copy Branch condition code from destination register
+                        conditionCode.setBit(0);
+                    if(this.destinationRegister.getBit(3))
+                        conditionCode.setBit(1);
+
+                    for(int i = 0; i < 10; i++) {                                                                   // copy address (and sign bit) from destination register and both operands
+                        if(this.operand1.getBit(i))
+                            branchAddress.setBit(i + 4);
+                        if(this.operand2.getBit(i))
+                            branchAddress.setBit(i);
+                    }
+                    if(this.destinationRegister.getBit(0))                                                          // copying last 2 address bits from destination register
+                        branchAddress.setBit(8);
+                    if(this.destinationRegister.getBit(1)) {
+                        branchAddress.setBit(9);
+                        branchAddress = maskLongword(branchAddress, 10, 32, 1);                                     // 9th bit is sign bit. if true, perform sign extension to preserve number
+                    }
+
+                    if((branchAddress.getSigned() * 2) > 253)
+                        throw new Exception("ComputerExecuteException: Jump address out of bounds of memory");
+                    else if((branchAddress.getSigned() * 2) < 0)
+                        throw new Exception("ComputerExecuteException: Jump address cannot be less than zero");
+
+                    switch(conditionCode.getSigned()) {
+                        case 0:                                                                                     // BNE Instruction (Branch if not equal)
+                            if(!(this.cmpZF && !this.cmpNF))                                                        // if ZF != 1 and NF != 0
+                                this.programCounter.set((branchAddress.getSigned() * 2)); this.cmpNF = true; this.cmpZF = true;
+                            break;
+                        case 1:                                                                                     // BLT Instruction (Branch if less than)
+                            if(!this.cmpZF && this.cmpNF)                                                           // if ZF == 0 and NF == 1 
+                                this.programCounter.set((branchAddress.getSigned() * 2));
+                            break;
+                        case 2:                                                                                     // BEQ Instruction (Branch if equal)
+                            if(this.cmpZF && !this.cmpNF)                                                           // if ZF == 1 and NF == 0
+                                this.programCounter.set((branchAddress.getSigned() * 2));
+                            break;
+                        case 3:                                                                                     // BLE Instruction (Branch if less than equal)
+                            if((!this.cmpZF && this.cmpNF) || (this.cmpZF && !this.cmpNF))                          // if (ZF == 0 and NF == 1) or (ZF == 1 and NF == 0)
+                                this.programCounter.set((branchAddress.getSigned() * 2));
+                            break;
+                        default:
+                            throw new Exception("ComputerExecuteException: Branch condition code not recognized");
+                    }
                     break;
                 default:
                     throw new Exception("ComputerExecuteException: Machine Op Code Not Recognized");
@@ -156,7 +213,8 @@ public class Computer {
      * Store the results of operation after execution of instructions
      */
     private void store() {
-        this.registers[this.destinationRegister.getSigned()].copy(this.result);
+        if(toStore)                                                                                                 // only store if needed to prevent stray storing into registers
+            this.registers[this.destinationRegister.getSigned()] = new Longword(this.result.getBitVector());
     }
 
     /**
