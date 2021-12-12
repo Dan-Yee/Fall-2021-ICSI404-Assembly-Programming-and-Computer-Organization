@@ -3,249 +3,29 @@ import java.lang.Exception;
 public class TestComputer {
     public static void runTests() throws Exception {
         Computer cpu = new Computer();
-        Memory mainMem = cpu.getMainMemory();
-        Longword instruction = new Longword();
-        Longword numBytes = new Longword();
-        Longword address = new Longword();
-
-        // JMP 3
-        // 0011 0000 0000 0011
-        instruction.set(12291);
-        numBytes.set(2);
-        address.set(0);
-        mainMem.write(address, instruction, numBytes);
+        String[] preloaded = new String[]{"0011 0000 0000 0011", "0000 0000 0000 0000",
+                                        "0000 0000 0000 0000", "0010 0001 0000 1010",
+                                        "0001 0000 0000 0000", "0001 0000 0000 0001",
+                                        "0010 0011 0000 1111", "0010 0100 0001 0100",
+                                        "0100 0000 0011 0100", "0101 0000 0000 1011",
+                                        "0000 0000 0000 0000", "0001 0000 0000 0001",
+                                        "0100 0000 0011 0100", "0101 0100 0000 1111",
+                                        "0000 0000 0000 0000", "0100 0000 0011 0100",
+                                        "0101 1100 0001 0100", "0000 0000 0000 0000",
+                                        "0000 0000 0000 0000", "0000 0000 0000 0000",
+                                        "0010 0101 0100 1011", "0010 0110 0100 1011",
+                                        "0100 0000 0101 0110", "0101 1000 0001 1001",
+                                        "0000 0000 0000 0000", "0010 0111 0000 1111",
+                                        "0010 1000 0001 0001", "1000 1001 0111 1000",
+                                        "0001 0000 0000 0000", "1001 1010 0111 1000",
+                                        "1010 1011 0111 1000", "1011 1100 0111 1000",
+                                        "1100 1101 0111 1000", "0010 0010 0000 1111",
+                                        "1101 0000 0010 0001", "0010 0010 1111 1111",
+                                        "0010 0001 0000 0010", "1110 1110 0010 0001",
+                                        "1111 1111 0010 0001", "0001 0000 0000 0000",
+                                        "0001 0000 0000 0001", "0000 0000 0000 0000"};
         
-        // MOV R1 10
-        // 0010 0001 0000 1010
-        instruction.set(8458);
-        numBytes.set(2);
-        address.set(6);
-        mainMem.write(address, instruction, numBytes);
-
-        // INT 0
-        // 0001 0000 0000 0000
-        instruction.set(4096);
-        numBytes.set(2);
-        address.set(8);
-        mainMem.write(address, instruction, numBytes);
-
-        // INT 1
-        // 0001 0000 0000 0000
-        instruction.set(4097);
-        numBytes.set(2);
-        address.set(10);
-        mainMem.write(address, instruction, numBytes);
-
-        // MOV R3 15
-        // 0010 0011 0000 1111
-        instruction.set(8975);
-        numBytes.set(2);
-        address.set(12);
-        mainMem.write(address, instruction, numBytes);
-
-        // MOV R4 20
-        // 0010 0100 0001 0100
-        instruction.set(9236);
-        numBytes.set(2);
-        address.set(14);
-        mainMem.write(address, instruction, numBytes);
-        
-        // CMP R3 R4
-        // 0100 0000 0011 0100
-        instruction.set(16436);
-        numBytes.set(2);
-        address.set(16);
-        mainMem.write(address, instruction, numBytes);
-
-        // BNE 11
-        // 0101 0000 0000 1011
-        instruction.set(20491);
-        numBytes.set(2);
-        address.set(18);
-        mainMem.write(address, instruction, numBytes);
-
-        // INT 1
-        // 0001 0000 0000 0001
-        instruction.set(4097);
-        numBytes.set(2);
-        address.set(22);
-        mainMem.write(address, instruction, numBytes);
-
-        // CMP R3 R4
-        // 0100 0000 0011 0100
-        instruction.set(16436);
-        numBytes.set(2);
-        address.set(24);
-        mainMem.write(address, instruction, numBytes);
-
-        // BLT 15
-        // 0101 0100 0000 1111
-        instruction.set(21519);
-        numBytes.set(2);
-        address.set(26);
-        mainMem.write(address, instruction, numBytes);
-
-        // CMP R3 R4
-        // 0100 0000 0011 0100
-        instruction.set(16436);
-        numBytes.set(2);
-        address.set(30);
-        mainMem.write(address, instruction, numBytes);
-
-        // BLE 20
-        // 0101 1100 0001 0100
-        instruction.set(23572);
-        numBytes.set(2);
-        address.set(32);
-        mainMem.write(address, instruction, numBytes);
-
-        // MOV R5 75
-        // 0010 0101 0100 1011
-        instruction.set(9547);
-        numBytes.set(2);
-        address.set(40);
-        mainMem.write(address, instruction, numBytes);
-
-        // MOV R6 75
-        // 0010 0110 0100 1011
-        instruction.set(9803);
-        numBytes.set(2);
-        address.set(42);
-        mainMem.write(address, instruction, numBytes);
-
-        // CMP R5 R6
-        // 0100 0000 0101 0110
-        instruction.set(16470);
-        numBytes.set(2);
-        address.set(44);
-        mainMem.write(address, instruction, numBytes);
-
-        // BEQ 25
-        // 0101 1000 0001 1001
-        instruction.set(22553);
-        numBytes.set(2);
-        address.set(46);
-        mainMem.write(address, instruction, numBytes);
-
-        // MOV R7 15
-        // 0010 0111 0000 1111
-        instruction.set(9999);
-        numBytes.set(2);
-        address.set(50);
-        mainMem.write(address, instruction, numBytes);
-
-        // MOV R8 17
-        // 0010 1000 0001 0001
-        instruction.set(10257);
-        numBytes.set(2);
-        address.set(52);
-        mainMem.write(address, instruction, numBytes);
-
-        // AND R9 R7 R8
-        // 1000 1001 0111 1000
-        instruction.set(-30344);
-        numBytes.set(2);
-        address.set(54);
-        mainMem.write(address, instruction, numBytes);
-
-        // INT 0
-        // 0001 0000 0000 0000
-        instruction.set(4096);
-        numBytes.set(2);
-        address.set(56);
-        mainMem.write(address, instruction, numBytes);
-        
-        // OR R10 R7 R8
-        // 1001 1010 0111 1000
-        instruction.set(-25992);
-        numBytes.set(2);
-        address.set(58);
-        mainMem.write(address, instruction, numBytes);
-
-        // XOR R11 R7 R8
-        // 1010 1011 0111 1000
-        instruction.set(-21640);
-        numBytes.set(2);
-        address.set(60);
-        mainMem.write(address, instruction, numBytes);
-
-        // ADD R12 R7 R8
-        // 1011 1100 0111 1000
-        instruction.set(-17288);
-        numBytes.set(2);
-        address.set(62);
-        mainMem.write(address, instruction, numBytes);
-
-        // SUB R13 R7 R8
-        // 1100 1101 0111 1000
-        instruction.set(-12936);
-        numBytes.set(2);
-        address.set(64);
-        mainMem.write(address, instruction, numBytes);
-
-        // MOV R2 15
-        // 0010 0010 0000 1111
-        instruction.set(8719);
-        numBytes.set(2);
-        address.set(66);
-        mainMem.write(address, instruction, numBytes);
-
-        // SLL R0 R2 R1
-        // 1101 0000 0010 0001
-        instruction.set(-12255);
-        numBytes.set(2);
-        address.set(68);
-        mainMem.write(address, instruction, numBytes);
-
-        // MOV R2 -1
-        // 0010 0010 1111 1111
-        instruction.set(8959);
-        numBytes.set(2);
-        address.set(70);
-        mainMem.write(address, instruction, numBytes);
-
-        // MOV R1 2
-        // 0010 0001 0000 0010
-        instruction.set(8450);
-        numBytes.set(2);
-        address.set(72);
-        mainMem.write(address, instruction, numBytes);
-
-        // SRL R14 R2 R1
-        // 1110 1110 0010 0001
-        instruction.set(-4575);
-        numBytes.set(2);
-        address.set(74);
-        mainMem.write(address, instruction, numBytes);
-
-        // SRA R15 R2 R1
-        // 1111 1111 0010 0001
-        instruction.set(-223);
-        numBytes.set(2);
-        address.set(76);
-        mainMem.write(address, instruction, numBytes);
-
-        // INT 0
-        // 0001 0000 0000 0000
-        instruction.set(4096);
-        numBytes.set(2);
-        address.set(78);
-        mainMem.write(address, instruction, numBytes);
-
-        // INT 1
-        // 0001 0000 0000 0001
-        instruction.set(4097);
-        numBytes.set(2);
-        address.set(80);
-        mainMem.write(address, instruction, numBytes);
-
-        // HLT
-        // 0000 0000 0000 0000
-        instruction.set(0);
-        numBytes.set(2);
-        address.set(82);
-        mainMem.write(address, instruction, numBytes);
-
+        cpu.preload(preloaded);
         cpu.run();
 
         // Display all instructions being tested
