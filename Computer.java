@@ -33,15 +33,6 @@ public class Computer {
     }
 
     /**
-     * [FOR TESTING PURPOSES ONLY] - Used to write instructions into memory for execution - [FOR TESTING PURPOSES ONLY]
-     * Accessor to access the main memory of the CPU
-     * @return the Memory object representing main memory
-     */
-    public Memory getMainMemory() {
-        return this.mainMemory;
-    }
-
-    /**
      * Continually fetches instructions until a halt instruction is received
      * @throws Exception
      */
@@ -235,5 +226,30 @@ public class Computer {
                 masked.setBit(i);
         }
         return masked;
+    }
+
+    /**
+     * Preload method for testing instruction sets
+     * @param instructions Array of instructions represented as 32 bit binary strings
+     * @throws Exception Memory write method may throw an exception
+     */
+    public void preload(String[] instructions) throws Exception {
+        Longword instruction = new Longword();
+        Longword address = new Longword();
+        Longword numBytes = new Longword();
+
+        address.set(0);
+        numBytes.set(2);
+
+        for(int i = 0; i < instructions.length; i++) {
+            String instructionStr = instructions[i].replaceAll("\\s+", "");
+
+            for(int j = 0, k = instructionStr.length() - 1; j < instructionStr.length() && k >= 0; j++, k--)
+                if(instructionStr.charAt(j) == '1')
+                    instruction.setBit(k);
+            this.mainMemory.write(address, instruction, numBytes);
+            instruction = new Longword();
+            address.set((address.getSigned() + 2));
+        }
     }
 }
