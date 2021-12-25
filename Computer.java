@@ -176,7 +176,7 @@ public class Computer {
                     switch(conditionCode.getSigned()) {
                         case 0:                                                                                     // BNE Instruction (Branch if not equal)
                             if(!(this.cmpZF && !this.cmpNF))                                                        // if ZF != 1 and NF != 0
-                                this.programCounter.set((branchAddress.getSigned() * 2)); this.cmpNF = true; this.cmpZF = true;
+                                this.programCounter.set((branchAddress.getSigned() * 2));
                             break;
                         case 1:                                                                                     // BLT Instruction (Branch if less than)
                             if(!this.cmpZF && this.cmpNF)                                                           // if ZF == 0 and NF == 1 
